@@ -29,6 +29,11 @@ def create_a_continent():
     body = request.get_json()
     name = body.get("name")
     population = body.get("population")
+    print(population)
     area = body.get("area")
     continent = Continent(name=name, population=population, area_in_sq_meters=area)
     continent.insert()
+    return jsonify({
+        "status_code": 200,
+        "message": f"{name} continent created."
+    })
