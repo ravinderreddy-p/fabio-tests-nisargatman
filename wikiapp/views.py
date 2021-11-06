@@ -1,7 +1,9 @@
 from flask import jsonify, request
 
 from wikiapp import app
-from wikiapp.models import Continent
+from wikiapp.models import Continent, setup_db
+
+setup_db(app)
 
 
 @app.route('/api/wiki/continents', methods=['GET'])

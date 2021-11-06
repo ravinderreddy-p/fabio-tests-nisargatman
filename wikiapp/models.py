@@ -19,7 +19,7 @@ def setup_db(app, database_path=database_path):
     migrate = Migrate()
     db.init_app(app)
     migrate.init_app(app, db)
-    db.create_all()
+    # db.create_all()
 
 
 '''
@@ -122,7 +122,7 @@ class City(db.Model):
     trees_count = Column(Integer, unique=False, nullable=True)
     created_at = Column(DateTime, unique=False, nullable=False)
     updated_at = Column(DateTime, unique=False, nullable=False)
-    country_id = Column(Integer, ForeignKey('country.id'))
+    country_id = Column(Integer, ForeignKey('countries.id'))
 
     def __init__(self, name):
         self.name = name
