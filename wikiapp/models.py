@@ -96,19 +96,19 @@ class Country(db.Model):
     name = Column(String, unique=True, nullable=False)
     population = Column(Integer, unique=False, nullable=False)
     area_in_sq_meters = Column(Float, unique=False, nullable=False)
-    hospitals_count = Column(Integer, unique=False, nullable=True)
-    national_parks_count = Column(Integer, unique=False, nullable=True)
+    number_of_hospitals = Column(Integer, unique=False, nullable=True)
+    number_of_national_parks = Column(Integer, unique=False, nullable=True)
     created_at = Column(DateTime, unique=False, nullable=True)
     updated_at = Column(DateTime, unique=False, nullable=True)
     continent_id = Column(Integer, ForeignKey('continents.id'))
     city = relationship('City', backref=backref('countries', cascade="all, delete"), lazy='dynamic')
 
-    def __init__(self, name, population, area, hospitals_count, national_parks_count, continent_id):
+    def __init__(self, name, population, area, number_of_hospitals, number_of_national_parks, continent_id):
         self.name = name
         self.population = population
         self.area_in_sq_meters = area
-        self.hospitals_count = hospitals_count
-        self.national_parks_count = national_parks_count
+        self.number_of_hospitals = number_of_hospitals
+        self.number_of_national_parks = number_of_national_parks
         self.continent_id = continent_id
         # self.created_at = datetime.datetime.utcnow
 
@@ -135,18 +135,18 @@ class City(db.Model):
     name = Column(String, unique=True, nullable=False)
     population = Column(Integer, unique=False, nullable=True)
     area_in_sq_meters = Column(Float, unique=False, nullable=True)
-    roads_count = Column(Integer, unique=False, nullable=True)
-    trees_count = Column(Integer, unique=False, nullable=True)
+    number_of_roads = Column(Integer, unique=False, nullable=True)
+    number_of_trees = Column(Integer, unique=False, nullable=True)
     created_at = Column(DateTime, unique=False, nullable=True)
     updated_at = Column(DateTime, unique=False, nullable=True)
     country_id = Column(Integer, ForeignKey('countries.id'))
 
-    def __init__(self, name, population, area, roads_count, trees_count, country_id):
+    def __init__(self, name, population, area, number_of_roads, number_of_trees, country_id):
         self.name = name
         self.population = population
         self.area_in_sq_meters = area
-        self.roads_count = roads_count
-        self.trees_count = trees_count
+        self.number_of_roads = number_of_roads
+        self.number_of_trees = number_of_trees
         self.country_id = country_id
         # self.created_at = datetime.datetime.utcnow
 
