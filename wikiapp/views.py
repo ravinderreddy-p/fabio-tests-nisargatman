@@ -1,6 +1,7 @@
 from flask import jsonify, request, abort
 
 from wikiapp import app, error_handler
+from wikiapp.data_validation import validate_population, validate_area
 from wikiapp.models import Continent, setup_db, db, Country, City
 
 setup_db(app)
@@ -140,6 +141,7 @@ def create_a_country(continent_id):
     area = body.get("area")
     number_of_hospitals = body.get("number_of_hospitals")
     number_of_national_parks = body.get("number_of_parks")
+    # Data Validations to be done before posting the data
     country = Country(name=name, population=population, area=area,
                       number_of_hospitals=number_of_hospitals,
                       number_of_national_parks=number_of_national_parks,
@@ -177,8 +179,10 @@ def update_a_country(continent_id, country_id):
     if name is not None and name != country.name:
         country.name = name
     if population is not None and population != country.population:
+        # Data Validations to be done before posting the data
         country.population = population
     if area is not None and area != country.area_in_sq_meters:
+        # Data Validations to be done before posting the data
         country.area_in_sq_meters = area
     if number_of_hospitals is not None and number_of_hospitals != country.number_of_hospitals:
         country.number_of_hospitals = number_of_hospitals
@@ -255,19 +259,28 @@ def create_a_city(continent_id, country_id):
     area = body.get("area")
     number_of_roads = body.get("number_of_roads")
     number_of_trees = body.get("number_of_trees")
-    city = City(name=name, population=population, area=area,
-                number_of_roads=number_of_roads,
-                number_of_trees=number_of_trees,
-                country_id=country_id)
-    try:
-        city.insert()
-        app.logger.info(f'City {name} added successfully')
-    except Exception as error:
-        db.session.rollback()
-        app.logger.error(error)
+    # Data Validations to be done before posting the data
+    if validate_population(country_id, population):
+        if validate_area(country_id, area):
+            city = City(name=name, population=population, area=area,
+                        number_of_roads=number_of_roads,
+                        number_of_trees=number_of_trees,
+                        country_id=country_id)
+            try:
+                city.insert()
+                app.logger.info(f'City {name} added successfully')
+            except Exception as error:
+                db.session.rollback()
+                app.logger.error(error)
+                abort(404)
+            finally:
+                db.session.close()
+        else:
+            app.logger.warning('Area is invalid')
+            abort(404)
+    else:
+        app.logger.warning('Population is invalid')
         abort(404)
-    finally:
-        db.session.close()
 
     return jsonify({
         "status_code": 200,
@@ -292,17 +305,41 @@ def update_a_city(continent_id, country_id, city_id):
     if name is not None and name != city.name:
         city.name = name
     if population is not None and population != city.population:
-        city.population = population
+        # Data Validations to be done before posting the data
+        if city.population > population:
+            print(f'validate population {population} {city.population}')
+            temp_population = population - city.population
+        else:
+            print(f'validate population {population} {city.population}')
+            temp_population = city.population - population
+
+        if validate_population(country_id, temp_population):
+            print("after validation check")
+            city.population = population
+        else:
+            app.logger.warning('Population is invalid')
+            abort(404)
     if area is not None and area != city.area_in_sq_meters:
-        city.area_in_sq_meters = area
+        # Data Validations to be done before posting the data
+        if city.area > area:
+            temp_area = area - city.area
+        else:
+            temp_area = city.area - area
+        if validate_area(country_id, temp_area):
+            city.area = area
+        else:
+            app.logger.warning('Area is invalid')
+            abort(404)
+
     if number_of_roads is not None and number_of_roads != city.number_of_roads:
         city.number_of_roads = number_of_roads
+
     if number_of_trees is not None and number_of_trees != city.number_of_trees:
         city.number_of_trees = number_of_trees
 
     try:
         city.update()
-        app.logger.info(f'city {name} updated successfully')
+        app.logger.info(f'city ID {city_id} updated successfully')
     except Exception as error:
         db.session.rollback()
         app.logger.error(error)
@@ -311,7 +348,7 @@ def update_a_city(continent_id, country_id, city_id):
         db.session.close()
     return jsonify({
         "status_code": 200,
-        "message": f'{city_id} is updated'
+        "message": f'City {city_id} is updated'
     })
 
 
