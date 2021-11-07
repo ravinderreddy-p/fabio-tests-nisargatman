@@ -5,7 +5,7 @@ from flask import flash
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.sql.functions import current_timestamp
 
 database_path = 'postgresql://pravinderreddy@localhost:5432/wiki-db'
@@ -40,7 +40,7 @@ class Continent(db.Model):
     area_in_sq_meters = Column(Float, unique=False, nullable=False)
     created_at = Column(DateTime, unique=False, nullable=True, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, unique=False, nullable=True)
-    country = relationship('Country', backref='continents', lazy='dynamic')
+    country = relationship('Country', backref=backref("continents", cascade="all, delete"), lazy='dynamic')
 
     def __init__(self, name, population, area_in_sq_meters):
         self.name = name
@@ -101,7 +101,7 @@ class Country(db.Model):
     created_at = Column(DateTime, unique=False, nullable=True)
     updated_at = Column(DateTime, unique=False, nullable=True)
     continent_id = Column(Integer, ForeignKey('continents.id'))
-    city = relationship('City', backref='countries', lazy='dynamic')
+    city = relationship('City', backref=backref('countries', cascade="all, delete"), lazy='dynamic')
 
     def __init__(self, name, population, area, hospitals_count, national_parks_count, continent_id):
         self.name = name
