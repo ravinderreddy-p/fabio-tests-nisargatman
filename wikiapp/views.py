@@ -1,7 +1,7 @@
 from flask import jsonify, request, abort
 
 from wikiapp import app, error_handler
-from wikiapp.models import Continent, setup_db, db, Country
+from wikiapp.models import Continent, setup_db, db, Country, City
 
 setup_db(app)
 
@@ -218,4 +218,119 @@ def delete_a_country(continent_id, country_id):
     return jsonify({
         "status_code": 200,
         "message": f'{country_id} is deleted'
+    })
+
+
+'''
+Cities
+'''
+
+
+@app.route('/api/wiki/continents/<int:continent_id>/countries/<int:country_id>/cities', methods=['GET'])
+def get_cities(continent_id, country_id):
+    cities_list = []
+    cities = City.query.all()
+    for city in cities:
+        city_json_data = {
+            "id": city.id,
+            "name": city.name,
+            "population": city.population,
+            "area": city.area_in_sq_meters,
+            "number_of_roads": city.number_of_roads,
+            "number_of_trees": city.number_of_trees
+        }
+        cities_list.append(city_json_data)
+    app.logger.info('Responded with all cities data')
+    return jsonify({
+        "status_code": 200,
+        "cities": cities_list,
+    })
+
+
+@app.route('/api/wiki/continents/<int:continent_id>/countries/<int:country_id>/cities', methods=['POST'])
+def create_a_city(continent_id, country_id):
+    body = request.get_json()
+    name = body.get("name")
+    population = body.get("population")
+    area = body.get("area")
+    number_of_roads = body.get("number_of_roads")
+    number_of_trees = body.get("number_of_trees")
+    city = City(name=name, population=population, area=area,
+                number_of_roads=number_of_roads,
+                number_of_trees=number_of_trees,
+                country_id=country_id)
+    try:
+        city.insert()
+        app.logger.info(f'City {name} added successfully')
+    except Exception as error:
+        db.session.rollback()
+        app.logger.error(error)
+        abort(404)
+    finally:
+        db.session.close()
+
+    return jsonify({
+        "status_code": 200,
+        "message": f"{name} city created."
+    })
+
+
+@app.route('/api/wiki/continents/<int:continent_id>/countries/<int:country_id>/cities/<int:city_id>', methods=['PUT'])
+def update_a_city(continent_id, country_id, city_id):
+    body = request.get_json()
+    name = body.get("name")
+    population = body.get("population")
+    area = body.get("area")
+    number_of_roads = body.get("number_of_roads")
+    number_of_trees = body.get("number_of_trees")
+
+    city = City.query.filter(City.id == city_id).one_or_none()
+    if city is None:
+        app.logger.warning(f'User provided City ID does not exists')
+        abort(404)
+
+    if name is not None and name != city.name:
+        city.name = name
+    if population is not None and population != city.population:
+        city.population = population
+    if area is not None and area != city.area_in_sq_meters:
+        city.area_in_sq_meters = area
+    if number_of_roads is not None and number_of_roads != city.number_of_roads:
+        city.number_of_roads = number_of_roads
+    if number_of_trees is not None and number_of_trees != city.number_of_trees:
+        city.number_of_trees = number_of_trees
+
+    try:
+        city.update()
+        app.logger.info(f'city {name} updated successfully')
+    except Exception as error:
+        db.session.rollback()
+        app.logger.error(error)
+        abort(404)
+    finally:
+        db.session.close()
+    return jsonify({
+        "status_code": 200,
+        "message": f'{city_id} is updated'
+    })
+
+
+@app.route('/api/wiki/continents/<int:continent_id>/countries/<int:country_id>/cities/<int:city_id>', methods=['DELETE'])
+def delete_a_city(continent_id, country_id, city_id):
+    # country = Country.query.get(country_id)
+    city = City.query.filter(City.id == city_id).one_or_none()
+    if city is None:
+        app.logger.warning(f'User provided City ID does not exists')
+        abort(404)
+    try:
+        city.delete()
+    except Exception as error:
+        db.session.rollback()
+        app.logger.error(error)
+        abort(404)
+    finally:
+        db.session.close()
+    return jsonify({
+        "status_code": 200,
+        "message": f'{city_id} is deleted'
     })
