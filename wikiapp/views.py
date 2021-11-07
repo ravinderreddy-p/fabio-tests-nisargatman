@@ -1,6 +1,9 @@
 from flask import jsonify, request, abort
 
 from wikiapp import app, error_handler
+from wikiapp.continents import get_all_continents_data, add_a_new_continent, update_a_continent_data, \
+    delete_a_continent_data
+from wikiapp.countries import get_all_countries_data, add_a_new_country, update_a_country_data, delete_a_country_data
 from wikiapp.data_validation import validate_population, validate_area
 from wikiapp.models import Continent, setup_db, db, Country, City
 
@@ -13,97 +16,39 @@ Continent APIs
 
 @app.route('/api/wiki/continents', methods=['GET'])
 def get_continents():
-    continents_list = []
-    continents = Continent.query.all()
-    for continent in continents:
-        continent_json_data = {
-            "id": continent.id,
-            "name": continent.name,
-            "population": continent.population,
-            "area": continent.area_in_sq_meters
-        }
-        continents_list.append(continent_json_data)
-    app.logger.info('Responded with all continents data')
+    continents_list = get_all_continents_data()
     return jsonify({
-        "status_code": 200,
-        "continents": continents_list,
+        'status_code': 200,
+        'continents': continents_list
     })
 
 
 @app.route('/api/wiki/continents', methods=['POST'])
-def create_a_continent():
+def add_a_continent():
     body = request.get_json()
-    name = body.get("name")
-    population = body.get("population")
-    area = body.get("area")
-    continent = Continent(name=name, population=population, area_in_sq_meters=area)
-    try:
-        continent.insert()
-        app.logger.info(f'continent {name} added successfully')
-    except Exception as error:
-        db.session.rollback()
-        app.logger.error(error)
-        abort(404)
-    finally:
-        db.session.close()
-
+    continent_name = add_a_new_continent(body)
     return jsonify({
-        "status_code": 200,
-        "message": f"{name} continent created."
+        'status_code': 200,
+        'message': f'Continent: {continent_name} successfully created.'
     })
 
 
 @app.route('/api/wiki/continents/<int:id>', methods=['PUT'])
 def update_a_continent(id):
     body = request.get_json()
-    name = body.get("name")
-    population = body.get("population")
-    area = body.get("area")
-    # continent = Continent.query.get(id)
-    continent = Continent.query.filter(Continent.id == id).one_or_none()
-    if continent is None:
-        app.logger.warning(f'User provided Continent ID does not exists')
-        abort(404)
-
-    if name is not None and name != continent.name:
-        continent.name = name
-    if population is not None and population != continent.population:
-        continent.population = population
-    if area is not None and area != continent.area_in_sq_meters:
-        continent.area_in_sq_meters = area
-    # continent.updated_at = datetime.datetime.utcnow
-    try:
-        continent.update()
-        app.logger.info(f'continent {name} updated successfully')
-    except Exception as error:
-        db.session.rollback()
-        app.logger.error(error)
-        abort(404)
-    finally:
-        db.session.close()
+    continent_id = update_a_continent_data(body, id)
     return jsonify({
-        "status_code": 200,
-        "message": f'{id} is updated'
+        'status_code': 200,
+        "message": f'Continent-ID: {continent_id} successfully updated'
     })
 
 
 @app.route('/api/wiki/continents/<int:id>', methods=['DELETE'])
 def delete_a_continent(id):
-    continent = Continent.query.get(id)
-    if continent is None:
-        app.logger.warning(f'User provided Continent ID does not exists')
-        abort(404)
-    try:
-        continent.delete()
-    except Exception as error:
-        db.session.rollback()
-        app.logger.error(error)
-        abort(404)
-    finally:
-        db.session.close()
+    continent_id = delete_a_continent_data(id)
     return jsonify({
-        "status_code": 200,
-        "message": f'{id} is deleted'
+        'status_code': 200,
+        'message': f'Continent-ID: {continent_id} deleted'
     })
 
 
@@ -114,111 +59,36 @@ Countries
 
 @app.route('/api/wiki/continents/<int:continent_id>/countries', methods=['GET'])
 def get_countries(continent_id):
-    countries_list = []
-    countries = Country.query.all()
-    for country in countries:
-        country_json_data = {
-            "id": country.id,
-            "name": country.name,
-            "population": country.population,
-            "area": country.area_in_sq_meters,
-            "number_of_hospitals": country.number_of_hospitals,
-            "number_of_national_parks": country.number_of_national_parks
-        }
-        countries_list.append(country_json_data)
-    app.logger.info('Responded with all countries data')
+    countries_list = get_all_countries_data()
     return jsonify({
-        "status_code": 200,
-        "countries": countries_list,
+        'status_code': 200,
+        'countries': countries_list,
     })
 
 
 @app.route('/api/wiki/continents/<int:continent_id>/countries', methods=['POST'])
-def create_a_country(continent_id):
+def add_a_country(continent_id):
     body = request.get_json()
-    name = body.get("name")
-    population = body.get("population")
-    area = body.get("area")
-    number_of_hospitals = body.get("number_of_hospitals")
-    number_of_national_parks = body.get("number_of_parks")
-    # Data Validations to be done before posting the data
-    country = Country(name=name, population=population, area=area,
-                      number_of_hospitals=number_of_hospitals,
-                      number_of_national_parks=number_of_national_parks,
-                      continent_id=continent_id)
-    try:
-        country.insert()
-        app.logger.info(f'Country {name} added successfully')
-    except Exception as error:
-        db.session.rollback()
-        app.logger.error(error)
-        abort(404)
-    finally:
-        db.session.close()
-
+    country_name = add_a_new_country(body, continent_id)
     return jsonify({
-        "status_code": 200,
-        "message": f"{name} country created."
+        'status_code': 200,
+        'message': f'Country: {country_name} created.'
     })
 
 
 @app.route('/api/wiki/continents/<int:continent_id>/countries/<int:country_id>', methods=['PUT'])
 def update_a_country(continent_id, country_id):
     body = request.get_json()
-    name = body.get("name")
-    population = body.get("population")
-    area = body.get("area")
-    number_of_hospitals = body.get("number_of_hospitals")
-    number_of_national_parks = body.get("number_of_parks")
-
-    country = Country.query.filter(Country.id == country_id).one_or_none()
-    if country is None:
-        app.logger.warning(f'User provided Country ID does not exists')
-        abort(404)
-
-    if name is not None and name != country.name:
-        country.name = name
-    if population is not None and population != country.population:
-        # Data Validations to be done before posting the data
-        country.population = population
-    if area is not None and area != country.area_in_sq_meters:
-        # Data Validations to be done before posting the data
-        country.area_in_sq_meters = area
-    if number_of_hospitals is not None and number_of_hospitals != country.number_of_hospitals:
-        country.number_of_hospitals = number_of_hospitals
-    if number_of_national_parks is not None and number_of_national_parks != country.number_of_national_parks:
-        country.number_of_national_parks = number_of_national_parks
-
-    try:
-        country.update()
-        app.logger.info(f'country {name} updated successfully')
-    except Exception as error:
-        db.session.rollback()
-        app.logger.error(error)
-        abort(404)
-    finally:
-        db.session.close()
+    country_id = update_a_country_data(body, country_id)
     return jsonify({
-        "status_code": 200,
-        "message": f'{country_id} is updated'
+        'status_code': 200,
+        'message': f'{country_id} is updated'
     })
 
 
 @app.route('/api/wiki/continents/<int:continent_id>/countries/<int:country_id>', methods=['DELETE'])
 def delete_a_country(continent_id, country_id):
-    # country = Country.query.get(country_id)
-    country = Country.query.filter(Country.id == country_id).one_or_none()
-    if country is None:
-        app.logger.warning(f'User provided Country ID does not exists')
-        abort(404)
-    try:
-        country.delete()
-    except Exception as error:
-        db.session.rollback()
-        app.logger.error(error)
-        abort(404)
-    finally:
-        db.session.close()
+    country_id = delete_a_country_data(country_id)
     return jsonify({
         "status_code": 200,
         "message": f'{country_id} is deleted'

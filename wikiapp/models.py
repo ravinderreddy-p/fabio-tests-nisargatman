@@ -70,6 +70,7 @@ class Continent(db.Model):
        '''
 
     def update(self):
+        # todo p1: updated_at should be updated
         db.session.commit()
 
     '''
