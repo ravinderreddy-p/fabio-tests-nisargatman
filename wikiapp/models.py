@@ -1,5 +1,7 @@
 import datetime
+import sys
 
+from flask import flash
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
@@ -53,6 +55,7 @@ class Continent(db.Model):
             continent = Continent(name=req_name, area=req_area, population=req_population)
             continent.insert()
     '''
+
     def insert(self):
         db.session.add(self)
         db.session.commit()
@@ -100,8 +103,14 @@ class Country(db.Model):
     continent_id = Column(Integer, ForeignKey('continents.id'))
     city = relationship('City', backref='countries', lazy='dynamic')
 
-    def __init__(self, name):
+    def __init__(self, name, population, area, hospitals_count, national_parks_count, continent_id):
         self.name = name
+        self.population = population
+        self.area_in_sq_meters = area
+        self.hospitals_count = hospitals_count
+        self.national_parks_count = national_parks_count
+        self.continent_id = continent_id
+        # self.created_at = datetime.datetime.utcnow
 
     def insert(self):
         db.session.add(self)
@@ -113,6 +122,8 @@ class Country(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
+
+
 '''
 City
 '''
@@ -130,8 +141,14 @@ class City(db.Model):
     updated_at = Column(DateTime, unique=False, nullable=True)
     country_id = Column(Integer, ForeignKey('countries.id'))
 
-    def __init__(self, name):
+    def __init__(self, name, population, area, roads_count, trees_count, country_id):
         self.name = name
+        self.population = population
+        self.area_in_sq_meters = area
+        self.roads_count = roads_count
+        self.trees_count = trees_count
+        self.country_id = country_id
+        # self.created_at = datetime.datetime.utcnow
 
     def insert(self):
         db.session.add(self)
