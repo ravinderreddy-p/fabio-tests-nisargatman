@@ -1,5 +1,4 @@
 from flask import jsonify
-
 from wikiapp import app
 
 
@@ -7,6 +6,5 @@ from wikiapp import app
 def not_found(error):
     return jsonify({
         "status_code": 404,
-        # "error": error,
         "message": "Page not found"
     }), 404

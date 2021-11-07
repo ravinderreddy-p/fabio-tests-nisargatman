@@ -1,12 +1,13 @@
-import datetime
-import sys
-
 from flask import jsonify, request, abort
 
 from wikiapp import app, error_handler
 from wikiapp.models import Continent, setup_db, db
 
 setup_db(app)
+
+'''
+Continent APIs
+'''
 
 
 @app.route('/api/wiki/continents', methods=['GET'])
@@ -21,6 +22,7 @@ def get_continents():
             "area": continent.area_in_sq_meters
         }
         continents_list.append(continent_json_data)
+    app.logger.info('Responded with all continents data')
     return jsonify({
         "status_code": 200,
         "continents": continents_list,
@@ -32,10 +34,18 @@ def create_a_continent():
     body = request.get_json()
     name = body.get("name")
     population = body.get("population")
-    print(population)
     area = body.get("area")
     continent = Continent(name=name, population=population, area_in_sq_meters=area)
-    continent.insert()
+    try:
+        continent.insert()
+        app.logger.info(f'continent {name} added successfully')
+    except Exception as error:
+        db.session.rollback()
+        app.logger.error(error)
+        abort(404)
+    finally:
+        db.session.close()
+
     return jsonify({
         "status_code": 200,
         "message": f"{name} continent created."
@@ -51,7 +61,7 @@ def update_a_continent(id):
     # continent = Continent.query.get(id)
     continent = Continent.query.filter(Continent.id == id).one_or_none()
     if continent is None:
-        print(f'{id} not exists')
+        app.logger.warning(f'User provided Continent ID does not exists')
         abort(404)
 
     if name is not None and name != continent.name:
@@ -63,9 +73,10 @@ def update_a_continent(id):
     # continent.updated_at = datetime.datetime.utcnow
     try:
         continent.update()
-    except :
+        app.logger.info(f'continent {name} updated successfully')
+    except Exception as error:
         db.session.rollback()
-        print('Error occured')
+        app.logger.error(error)
         abort(404)
     finally:
         db.session.close()
@@ -79,12 +90,13 @@ def update_a_continent(id):
 def delete_a_continent(id):
     continent = Continent.query.get(id)
     if continent is None:
+        app.logger.warning(f'User provided Continent ID does not exists')
         abort(404)
     try:
         continent.delete()
-    except Exception as e:
+    except Exception as error:
         db.session.rollback()
-        print('Error', str(e))
+        app.logger.error(error)
         abort(404)
     finally:
         db.session.close()
