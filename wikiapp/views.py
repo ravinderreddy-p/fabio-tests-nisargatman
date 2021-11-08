@@ -113,28 +113,6 @@ def get_cities(continent_id, country_id):
 def create_a_city(continent_id, country_id):
     body = request.get_json()
     city_name = add_a_new_city(body, country_id)
-    # Data Validations to be done before posting the data
-    # if validate_population(country_id, population):
-    #     if validate_area(country_id, area):
-    #         city = City(name=name, population=population, area=area,
-    #                     number_of_roads=number_of_roads,
-    #                     number_of_trees=number_of_trees,
-    #                     country_id=country_id)
-    #         try:
-    #             city.insert()
-    #             app.logger.info(f'City {name} added successfully')
-    #         except Exception as error:
-    #             db.session.rollback()
-    #             app.logger.error(error)
-    #             abort(404)
-    #         finally:
-    #             db.session.close()
-    #     else:
-    #         app.logger.warning('Area is invalid')
-    #         abort(404)
-    # else:
-    #     app.logger.warning('Population is invalid')
-    #     abort(404)
     return jsonify({
         "status_code": 200,
         "message": f"{city_name} city created."
@@ -144,7 +122,7 @@ def create_a_city(continent_id, country_id):
 @app.route('/api/wiki/continents/<int:continent_id>/countries/<int:country_id>/cities/<int:city_id>', methods=['PUT'])
 def update_a_city(continent_id, country_id, city_id):
     body = request.get_json()
-    city_id = update_a_city_data(body, city_id)
+    city_id = update_a_city_data(body, city_id, country_id)
     return jsonify({
         "status_code": 200,
         "message": f'City {city_id} is updated'

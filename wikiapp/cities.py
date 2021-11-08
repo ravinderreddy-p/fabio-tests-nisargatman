@@ -1,5 +1,6 @@
 from wikiapp import app
-from wikiapp.data_validation import population_is_valid, population_and_area_are_valid
+from wikiapp.data_validation import population_and_area_are_valid, population_is_valid_for_update, \
+    area_is_valid_for_update
 from wikiapp.models import City, db, Country
 from flask import abort
 
@@ -35,8 +36,7 @@ def add_a_new_city(request_body, country_id):
         abort(404)
     number_of_roads = request_body.get("number_of_roads")
     number_of_trees = request_body.get("number_of_trees")
-    # Data Validations to be done before posting the data
-    # if population_is_valid(country_id, population):
+
     if population_and_area_are_valid(country_id, population, area):
         city = City(name=name, population=population, area=area,
                     number_of_roads=number_of_roads,
@@ -54,7 +54,7 @@ def add_a_new_city(request_body, country_id):
     return name
 
 
-def update_a_city_data(request_body, city_id):
+def update_a_city_data(request_body, city_id, country_id):
     name = request_body.get("name")
     population = request_body.get("population")
     area = request_body.get("area")
@@ -68,11 +68,17 @@ def update_a_city_data(request_body, city_id):
     if name is not None:
         city.name = name
     if population is not None:
-        # Data Validations to be done before posting the data
-        city.population = population
+        if population_is_valid_for_update(country_id, city_id, population):
+            city.population = population
+        else:
+            app.logger.warning(f'city-ID:{city_id} population exceeds total country: {country_id} population')
+            abort(411)
     if area is not None:
-        # Data Validations to be done before posting the data
-        city.area_in_sq_meters = area
+        if area_is_valid_for_update(country_id, city_id, area):
+            city.area_in_sq_meters = area
+        else:
+            app.logger.warning(f'city-ID:{city_id} area exceeds total country: {country_id} area')
+            abort(410)
     if number_of_roads is not None:
         city.number_of_roads = number_of_roads
     if number_of_trees is not None:
