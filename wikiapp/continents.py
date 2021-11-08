@@ -3,7 +3,7 @@ from wikiapp.models import Continent, db
 from flask import abort
 
 
-def get_all_continents_data():
+def get_all_continents():
     continents_list = []
     continents = Continent.query.all()
     for continent in continents:
@@ -38,7 +38,7 @@ def update_a_continent_data(request_body, continent_id):
     name = request_body.get('name')
     population = request_body.get('population')
     area = request_body.get('area')
-    continent = Continent.query.filter(Continent.id == continent_id).one_or_none()
+    continent = Continent.query.filter_by(id=continent_id).one_or_none()
     if continent is None:
         app.logger.warning(f'User provided continent-ID: {continent_id} does not exists')
         abort(404)
@@ -62,18 +62,18 @@ def update_a_continent_data(request_body, continent_id):
     return continent_id
 
 
-def delete_a_continent_data(id):
-    continent = Continent.query.get(id)
+def delete_a_continent_data(continent_id):
+    continent = Continent.query.filter_by(id=continent_id).one_or_none()
     if continent is None:
-        app.logger.warning(f'User provided Continent-ID: {id} does not exists')
+        app.logger.warning(f'User provided Continent-ID: {continent_id} does not exists')
         abort(404)
     try:
         continent.delete()
-        app.logger.info(f'Continent-ID: {id} deleted')
+        app.logger.info(f'Continent-ID: {continent_id} deleted')
     except Exception as error:
         db.session.rollback()
         app.logger.error(error)
         abort(502)
     finally:
         db.session.close()
-    return id
+    return continent_id

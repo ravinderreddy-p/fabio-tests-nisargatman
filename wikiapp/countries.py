@@ -3,8 +3,8 @@ from wikiapp.models import Country, db
 from flask import abort
 
 
-def get_all_countries_data():
-    countries = Country.query.all()
+def get_all_countries(continent_id):
+    countries = Country.query.filter_by(continent_id=continent_id).all()
     countries_list = []
     for country in countries:
         country_json_data = {
@@ -21,8 +21,17 @@ def get_all_countries_data():
 
 def add_a_new_country(request_body, continent_id):
     name = request_body.get("name")
+    if name is None:
+        app.logger.warning(f'User not provided Country name')
+        abort(404)
     population = request_body.get("population")
+    if population is None:
+        app.logger.warning(f'User not provided Country Population')
+        abort(404)
     area = request_body.get("area")
+    if area is None:
+        app.logger.warning(f'User not provided Country Area')
+        abort(404)
     number_of_hospitals = request_body.get("number_of_hospitals")
     number_of_national_parks = request_body.get("number_of_parks")
     # Data Validations to be done before posting the data
@@ -36,7 +45,7 @@ def add_a_new_country(request_body, continent_id):
     except Exception as error:
         db.session.rollback()
         app.logger.error(error)
-        abort(404)
+        abort(502)
     finally:
         db.session.close()
     return name
@@ -48,25 +57,22 @@ def update_a_country_data(request_body, country_id):
     area = request_body.get("area")
     number_of_hospitals = request_body.get("number_of_hospitals")
     number_of_national_parks = request_body.get("number_of_parks")
-
-    country = Country.query.filter(Country.id == country_id).one_or_none()
+    country = Country.query.filter_by(id=country_id).one_or_none()
     if country is None:
-        app.logger.warning(f'User provided Country ID does not exists')
+        app.logger.warning(f'User provided Country-Id: {country_id} does not exists')
         abort(404)
-
     if name is not None:
         country.name = name
     if population is not None:
-        # Data Validations to be done before posting the data
+        # Data Validations to be done before updating the data
         country.population = population
     if area is not None:
-        # Data Validations to be done before posting the data
+        # Data Validations to be done before updating the data
         country.area_in_sq_meters = area
     if number_of_hospitals is not None:
         country.number_of_hospitals = number_of_hospitals
     if number_of_national_parks is not None:
         country.number_of_national_parks = number_of_national_parks
-
     try:
         country.update()
         app.logger.info(f'Country-ID: {country_id} updated successfully')
@@ -80,7 +86,7 @@ def update_a_country_data(request_body, country_id):
 
 
 def delete_a_country_data(country_id):
-    country = Country.query.filter(Country.id == country_id).one_or_none()
+    country = Country.query.filter_by(id=country_id).one_or_none()
     if country is None:
         app.logger.warning(f'User provided Country-ID: {country_id} does not exists')
         abort(404)
@@ -90,7 +96,7 @@ def delete_a_country_data(country_id):
     except Exception as error:
         db.session.rollback()
         app.logger.error(error)
-        abort(404)
+        abort(502)
     finally:
         db.session.close()
     return country_id
