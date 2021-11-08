@@ -5,7 +5,6 @@ from wikiapp.cities import get_all_cities, add_a_new_city, update_a_city_data, d
 from wikiapp.continents import get_all_continents, add_a_new_continent, update_a_continent_data, \
     delete_a_continent_data
 from wikiapp.countries import get_all_countries, add_a_new_country, update_a_country_data, delete_a_country_data
-from wikiapp.data_validation import validate_population, validate_area
 from wikiapp.models import Continent, setup_db, db, Country, City
 
 setup_db(app)

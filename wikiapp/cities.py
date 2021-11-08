@@ -1,4 +1,5 @@
 from wikiapp import app
+from wikiapp.data_validation import population_is_valid, population_and_area_are_valid
 from wikiapp.models import City, db, Country
 from flask import abort
 
@@ -35,19 +36,21 @@ def add_a_new_city(request_body, country_id):
     number_of_roads = request_body.get("number_of_roads")
     number_of_trees = request_body.get("number_of_trees")
     # Data Validations to be done before posting the data
-    city = City(name=name, population=population, area=area,
-                number_of_roads=number_of_roads,
-                number_of_trees=number_of_trees,
-                country_id=country_id)
-    try:
-        city.insert()
-        app.logger.info(f'City: {name} added successfully')
-    except Exception as error:
-        db.session.rollback()
-        app.logger.error(error)
-        abort(502)
-    finally:
-        db.session.close()
+    # if population_is_valid(country_id, population):
+    if population_and_area_are_valid(country_id, population, area):
+        city = City(name=name, population=population, area=area,
+                    number_of_roads=number_of_roads,
+                    number_of_trees=number_of_trees,
+                    country_id=country_id)
+        try:
+            city.insert()
+            app.logger.info(f'City: {name} added successfully')
+        except Exception as error:
+            db.session.rollback()
+            app.logger.error(error)
+            abort(502)
+        finally:
+            db.session.close()
     return name
 
 
