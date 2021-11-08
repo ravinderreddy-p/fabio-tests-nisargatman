@@ -7,6 +7,7 @@ import os
 app = Flask(__name__)
 app.secret_key = "super secret key"
 
+# if not app.debug:
 if app.debug:
     if not os.path.exists('./logs'):
         os.mkdir('./logs')
