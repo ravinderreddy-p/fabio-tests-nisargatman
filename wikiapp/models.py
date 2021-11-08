@@ -1,12 +1,12 @@
-import datetime
 import sys
+from datetime import datetime
 
 from flask import flash
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
 from sqlalchemy.orm import relationship, backref
-from sqlalchemy.sql.functions import current_timestamp
+from sqlalchemy.sql.functions import current_timestamp, func
 
 database_path = 'postgresql://pravinderreddy@localhost:5432/wiki-db'
 db = SQLAlchemy()
@@ -38,15 +38,15 @@ class Continent(db.Model):
     name = Column(String, unique=True, nullable=False)
     population = Column(Integer, unique=False, nullable=False)
     area_in_sq_meters = Column(Float, unique=False, nullable=False)
-    created_at = Column(DateTime, unique=False, nullable=True, default=datetime.datetime.utcnow)
-    updated_at = Column(DateTime, unique=False, nullable=True)
+    created_at = Column(DateTime, unique=False, nullable=True)
+    updated_at = Column(DateTime, unique=False, nullable=True, onupdate=datetime.utcnow())
     country = relationship('Country', backref=backref("continents", cascade="all, delete"), lazy='dynamic')
 
     def __init__(self, name, population, area_in_sq_meters):
         self.name = name
         self.population = population
         self.area_in_sq_meters = area_in_sq_meters
-        # self.created_at = datetime.datetime.utcnow
+        self.created_at = datetime.utcnow()
 
     '''
     insert()
@@ -100,7 +100,7 @@ class Country(db.Model):
     number_of_hospitals = Column(Integer, unique=False, nullable=True)
     number_of_national_parks = Column(Integer, unique=False, nullable=True)
     created_at = Column(DateTime, unique=False, nullable=True)
-    updated_at = Column(DateTime, unique=False, nullable=True)
+    updated_at = Column(DateTime, unique=False, nullable=True, onupdate=datetime.utcnow())
     continent_id = Column(Integer, ForeignKey('continents.id'))
     city = relationship('City', backref=backref('countries', cascade="all, delete"), lazy='dynamic')
 
@@ -111,7 +111,7 @@ class Country(db.Model):
         self.number_of_hospitals = number_of_hospitals
         self.number_of_national_parks = number_of_national_parks
         self.continent_id = continent_id
-        # self.created_at = datetime.datetime.utcnow
+        self.created_at = datetime.utcnow()
 
     def insert(self):
         db.session.add(self)
@@ -139,7 +139,7 @@ class City(db.Model):
     number_of_roads = Column(Integer, unique=False, nullable=True)
     number_of_trees = Column(Integer, unique=False, nullable=True)
     created_at = Column(DateTime, unique=False, nullable=True)
-    updated_at = Column(DateTime, unique=False, nullable=True)
+    updated_at = Column(DateTime, unique=False, nullable=True, onupdate=datetime.utcnow())
     country_id = Column(Integer, ForeignKey('countries.id'))
 
     def __init__(self, name, population, area, number_of_roads, number_of_trees, country_id):
@@ -149,7 +149,7 @@ class City(db.Model):
         self.number_of_roads = number_of_roads
         self.number_of_trees = number_of_trees
         self.country_id = country_id
-        # self.created_at = datetime.datetime.utcnow
+        self.created_at = datetime.utcnow()
 
     def insert(self):
         db.session.add(self)

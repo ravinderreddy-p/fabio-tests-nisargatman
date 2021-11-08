@@ -19,8 +19,17 @@ def get_all_continents():
 
 def add_a_new_continent(request_body):
     name = request_body.get('name')
+    if name is None:
+        app.logger.warning('User not provided mandatory field: name')
+        abort(404)
     population = request_body.get('population')
+    if population is None:
+        app.logger.warning('User not provided mandatory field: population')
+        abort(404)
     area = request_body.get('area')
+    if area is None:
+        app.logger.warning('User not provided mandatory field: area')
+        abort(404)
     continent = Continent(name=name, population=population, area_in_sq_meters=area)
     try:
         continent.insert()
@@ -28,7 +37,7 @@ def add_a_new_continent(request_body):
     except Exception as error:
         db.session.rollback()
         app.logger.error(error)
-        abort(404)
+        abort(502)
     finally:
         db.session.close()
     return name
