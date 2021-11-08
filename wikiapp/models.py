@@ -39,8 +39,8 @@ class Continent(db.Model):
     population = Column(Integer, unique=False, nullable=False)
     area_in_sq_meters = Column(Float, unique=False, nullable=False)
     created_at = Column(DateTime, unique=False, nullable=True)
-    updated_at = Column(DateTime, unique=False, nullable=True, onupdate=datetime.utcnow())
-    country = relationship('Country', backref=backref("continents", cascade="all, delete"), lazy='dynamic')
+    updated_at = Column(DateTime, unique=False, nullable=True)
+    country = relationship('Country', backref='continents', cascade="all, delete", passive_deletes=True)
 
     def __init__(self, name, population, area_in_sq_meters):
         self.name = name
@@ -70,7 +70,7 @@ class Continent(db.Model):
        '''
 
     def update(self):
-        # todo p1: updated_at should be updated
+        self.updated_at = datetime.utcnow()
         db.session.commit()
 
     '''
@@ -100,9 +100,9 @@ class Country(db.Model):
     number_of_hospitals = Column(Integer, unique=False, nullable=True)
     number_of_national_parks = Column(Integer, unique=False, nullable=True)
     created_at = Column(DateTime, unique=False, nullable=True)
-    updated_at = Column(DateTime, unique=False, nullable=True, onupdate=datetime.utcnow())
-    continent_id = Column(Integer, ForeignKey('continents.id'))
-    city = relationship('City', backref=backref('countries', cascade="all, delete"), lazy='dynamic')
+    updated_at = Column(DateTime, unique=False, nullable=True)
+    continent_id = Column(Integer, ForeignKey('continents.id', ondelete="CASCADE"))
+    city = relationship('City', backref='countries', cascade="all, delete", passive_deletes=True)
 
     def __init__(self, name, population, area, number_of_hospitals, number_of_national_parks, continent_id):
         self.name = name
@@ -118,6 +118,7 @@ class Country(db.Model):
         db.session.commit()
 
     def update(self):
+        self.updated_at = datetime.utcnow()
         db.session.commit()
 
     def delete(self):
@@ -139,8 +140,8 @@ class City(db.Model):
     number_of_roads = Column(Integer, unique=False, nullable=True)
     number_of_trees = Column(Integer, unique=False, nullable=True)
     created_at = Column(DateTime, unique=False, nullable=True)
-    updated_at = Column(DateTime, unique=False, nullable=True, onupdate=datetime.utcnow())
-    country_id = Column(Integer, ForeignKey('countries.id'))
+    updated_at = Column(DateTime, unique=False, nullable=True)
+    country_id = Column(Integer, ForeignKey('countries.id', ondelete="CASCADE"))
 
     def __init__(self, name, population, area, number_of_roads, number_of_trees, country_id):
         self.name = name
@@ -156,6 +157,7 @@ class City(db.Model):
         db.session.commit()
 
     def update(self):
+        self.updated_at = datetime.utcnow()
         db.session.commit()
 
     def delete(self):
