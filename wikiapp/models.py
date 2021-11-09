@@ -48,6 +48,9 @@ class Continent(db.Model):
         self.area_in_sq_meters = area_in_sq_meters
         self.created_at = datetime.utcnow()
 
+    def __repr__(self):
+        return f"<id={self.id}, name={self.name}, population={self.population}, area={self.area_in_sq_meters}>"
+
     '''
     insert()
         inserts a new record into a model in database

@@ -6,6 +6,8 @@ from flask import abort
 def get_all_continents():
     continents_list = []
     continents = Continent.query.all()
+    print(continents)
+    print(type(continents))
     for continent in continents:
         continent_json_data = {
             'id': continent.id,
@@ -15,6 +17,14 @@ def get_all_continents():
         }
         continents_list.append(continent_json_data)
     return continents_list
+
+
+def get_a_continent_data(continent_id):
+    continent = Continent.query.filter_by(id=continent_id).one_or_none()
+    if continent is None:
+        app.logger.warning(f'User provided continent-ID: {continent_id} does not exists to fetch data')
+        abort(404)
+    return continent
 
 
 def add_a_new_continent(request_body):

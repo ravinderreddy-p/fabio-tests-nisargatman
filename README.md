@@ -1,6 +1,9 @@
 # fabio-tests-nisargatman
 ## Low Level Approach:
 ###Tables:
+- I created one-to-many relationship between 'continents'-->'countries' & 'countries'-->'cities'.
+- Implemented Cascade delete for the models in a way that if I delete parent, it's corresponding child records get deleted physically
+
 **continents**:
     id*, name, population, area, createdAt, updatedAt
     
@@ -19,7 +22,7 @@
     - Making all these fields mandatory as this data is required for Country level validation(Area & Population)
     
 - [PUT] /api/wiki/continents/<<int:id>>:
-    - Update the changes of data corresponding to given continent ID in Continent table.
+    - Updates continent data and updated_at field. 
     
 - [DELETE] /api/wiki/continents/<<int:id>>:
     - If ID exists then delete the continent along with corresponding countries and cities[Assumed this way]
