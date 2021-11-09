@@ -21,6 +21,14 @@ def get_all_cities(country_id):
     return cities_list
 
 
+def get_a_city_data(city_id):
+    city = City.query.filter_by(id=city_id).one_or_none()
+    if city is None:
+        app.logger.warning(f'User provided city-ID: {city_id} does not exists to fetch data')
+        abort(404)
+    return city
+
+
 def add_a_new_city(request_body, country_id):
     name = request_body.get("name")
     if name is None:

@@ -19,6 +19,14 @@ def get_all_countries(continent_id):
     return countries_list
 
 
+def get_a_country_data(country_id):
+    country = Country.query.filter_by(id=country_id).one_or_none()
+    if country is None:
+        app.logger.warning(f'User provided country-ID: {country_id} does not exists to fetch data')
+        abort(404)
+    return country
+
+
 def add_a_new_country(request_body, continent_id):
     name = request_body.get("name")
     if name is None:

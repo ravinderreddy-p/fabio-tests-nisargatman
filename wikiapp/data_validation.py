@@ -51,3 +51,4 @@ def area_is_valid_for_update(country_id, city_id, area):
     updated_cities_area = cities_area.sum - current_city_area
     updated_cities_area = updated_cities_area + area
     return updated_cities_area < country_area
+
