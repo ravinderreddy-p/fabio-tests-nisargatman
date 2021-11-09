@@ -1,12 +1,12 @@
-from flask import jsonify, request, abort, make_response, json
+from flask import jsonify, request
 
-from wikiapp import app, error_handler
+from wikiapp import app
 from wikiapp.cities import get_all_cities, add_a_new_city, update_a_city_data, delete_a_city_data, get_a_city_data
 from wikiapp.continents import get_all_continents, add_a_new_continent, update_a_continent_data, \
     delete_a_continent_data, get_a_continent_data
 from wikiapp.countries import get_all_countries, add_a_new_country, update_a_country_data, delete_a_country_data, \
     get_a_country_data
-from wikiapp.models import Continent, setup_db, db, Country, City
+from wikiapp.models import setup_db
 
 setup_db(app)
 
@@ -116,7 +116,7 @@ def add_a_country(continent_id):
 @app.route('/api/wiki/continents/<int:continent_id>/countries/<int:country_id>', methods=['PUT'])
 def update_a_country(continent_id, country_id):
     body = request.get_json()
-    country_id = update_a_country_data(body, country_id)
+    country_id = update_a_country_data(body, country_id, continent_id)
     return jsonify({
         'status_code': 200,
         'message': f'{country_id} is updated'

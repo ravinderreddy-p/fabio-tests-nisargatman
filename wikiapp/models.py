@@ -1,12 +1,9 @@
-import sys
 from datetime import datetime
 
-from flask import flash
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
-from sqlalchemy.orm import relationship, backref
-from sqlalchemy.sql.functions import current_timestamp, func
+from sqlalchemy.orm import relationship
 
 database_path = 'postgresql://pravinderreddy@localhost:5432/wiki-db'
 db = SQLAlchemy()

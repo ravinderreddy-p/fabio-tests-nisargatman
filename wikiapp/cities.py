@@ -1,6 +1,6 @@
 from wikiapp import app
-from wikiapp.data_validation import population_and_area_are_valid, population_is_valid_for_update, \
-    area_is_valid_for_update
+from wikiapp.city_data_validation import city_population_and_area_are_valid, city_population_is_valid_for_update, \
+    city_area_is_valid_for_update
 from wikiapp.models import City, db, Country
 from flask import abort
 
@@ -25,7 +25,7 @@ def get_a_city_data(city_id):
     city = City.query.filter_by(id=city_id).one_or_none()
     if city is None:
         app.logger.warning(f'User provided city-ID: {city_id} does not exists to fetch data')
-        abort(404)
+        abort(400)
     return city
 
 
@@ -33,19 +33,19 @@ def add_a_new_city(request_body, country_id):
     name = request_body.get("name")
     if name is None:
         app.logger.warning(f'User not provided City name under continent-Id: {country_id}')
-        abort(404)
+        abort(400)
     population = request_body.get("population")
     if population is None:
         app.logger.warning(f'User not provided City Population under continent-Id: {country_id}')
-        abort(404)
+        abort(400)
     area = request_body.get("area")
     if area is None:
         app.logger.warning(f'User not provided City Area under continent-Id: {country_id}')
-        abort(404)
+        abort(400)
     number_of_roads = request_body.get("number_of_roads")
     number_of_trees = request_body.get("number_of_trees")
 
-    if population_and_area_are_valid(country_id, population, area):
+    if city_population_and_area_are_valid(country_id, population, area):
         city = City(name=name, population=population, area=area,
                     number_of_roads=number_of_roads,
                     number_of_trees=number_of_trees,
@@ -72,21 +72,21 @@ def update_a_city_data(request_body, city_id, country_id):
     city = City.query.filter_by(id=city_id).one_or_none()
     if city is None:
         app.logger.warning(f'User provided City-ID: {city_id} does not exists')
-        abort(404)
+        abort(400)
     if name is not None:
         city.name = name
     if population is not None:
-        if population_is_valid_for_update(country_id, city_id, population):
+        if city_population_is_valid_for_update(country_id, city_id, population):
             city.population = population
         else:
             app.logger.warning(f'city-ID:{city_id} population exceeds total country: {country_id} population')
-            abort(411)
+            abort(400)
     if area is not None:
-        if area_is_valid_for_update(country_id, city_id, area):
+        if city_area_is_valid_for_update(country_id, city_id, area):
             city.area_in_sq_meters = area
         else:
             app.logger.warning(f'city-ID:{city_id} area exceeds total country: {country_id} area')
-            abort(410)
+            abort(400)
     if number_of_roads is not None:
         city.number_of_roads = number_of_roads
     if number_of_trees is not None:
@@ -107,7 +107,7 @@ def delete_a_city_data(city_id):
     city = City.query.filter_by(id=city_id).one_or_none()
     if city is None:
         app.logger.warning(f'User provided City-ID: {city_id} does not exists')
-        abort(404)
+        abort(400)
     try:
         city.delete()
         app.logger.info(f'City-ID: {city_id} deleted successfully')

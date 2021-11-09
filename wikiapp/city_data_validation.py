@@ -4,14 +4,22 @@ from sqlalchemy import func
 from wikiapp import app
 from wikiapp.models import Country, City
 
+'''
+Validate country data against continent data
+'''
+
 
 def country_count_is_higher_than_cities_count(country_count, existing_cities_total_count, new_city_count):
     cities_total_count = existing_cities_total_count + new_city_count
     return cities_total_count < country_count
 
 
-def population_and_area_are_valid(country_id, new_city_population, new_city_area):
-    country = Country.query.filter_by(id=country_id).first()
+def city_population_and_area_are_valid(country_id, new_city_population, new_city_area):
+    # todo use one_or_None and through None exception if
+    country = Country.query.filter_by(id=country_id).one_or_none()
+    if country is None:
+        app.logger.warning(f'country-ID: {country_id} does not exist. ')
+        abort(400)
     country_population = country.population
     country_area = country.area_in_sq_meters
 
@@ -27,13 +35,13 @@ def population_and_area_are_valid(country_id, new_city_population, new_city_area
             return True
         else:
             app.logger.warning(f'city area exceeds total country: {country_id} area')
-            abort(410)
+            abort(400)
     else:
         app.logger.warning(f'city population exceeds total country: {country_id} population')
-        abort(411)
+        abort(400)
 
 
-def population_is_valid_for_update(country_id, city_id, population):
+def city_population_is_valid_for_update(country_id, city_id, population):
     country_population = Country.query.filter_by(id=country_id).first().population
     current_city_population = City.query.filter_by(id=city_id).first().population
     cities_population = City.query.with_entities(func.sum(City.population).label("sum")) \
@@ -43,7 +51,7 @@ def population_is_valid_for_update(country_id, city_id, population):
     return updated_cities_population < country_population
 
 
-def area_is_valid_for_update(country_id, city_id, area):
+def city_area_is_valid_for_update(country_id, city_id, area):
     country_area = Country.query.filter_by(id=country_id).first().area_in_sq_meters
     current_city_area = City.query.filter_by(id=city_id).first().area_in_sq_meters
     cities_area = City.query.with_entities(func.sum(City.population).label("sum")) \
@@ -51,4 +59,3 @@ def area_is_valid_for_update(country_id, city_id, area):
     updated_cities_area = cities_area.sum - current_city_area
     updated_cities_area = updated_cities_area + area
     return updated_cities_area < country_area
-

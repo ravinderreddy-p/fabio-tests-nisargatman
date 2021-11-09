@@ -2,28 +2,20 @@ from flask import jsonify
 from wikiapp import app
 
 
+@app.errorhandler(400)
+def not_found(error):
+    return jsonify({
+        'status_code': 400,
+        'message': 'Bad Request'
+    }), 400
+
+
 @app.errorhandler(404)
 def not_found(error):
     return jsonify({
         'status_code': 404,
-        'message': 'Page not found'
+        'message': 'Page or resource not found'
     }), 404
-
-
-@app.errorhandler(410)
-def not_found(error):
-    return jsonify({
-        'status_code': 410,
-        'message': 'Area exceeds the limit'
-    }), 410
-
-
-@app.errorhandler(411)
-def not_found(error):
-    return jsonify({
-        'status_code': 411,
-        'message': 'Population exceeds the limit'
-    }), 411
 
 
 @app.errorhandler(502)

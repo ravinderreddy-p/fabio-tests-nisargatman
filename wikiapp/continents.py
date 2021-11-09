@@ -21,6 +21,7 @@ def get_all_continents():
 
 def get_a_continent_data(continent_id):
     continent = Continent.query.filter_by(id=continent_id).one_or_none()
+    print(continent_id)
     if continent is None:
         app.logger.warning(f'User provided continent-ID: {continent_id} does not exists to fetch data')
         abort(404)
